@@ -26,38 +26,46 @@ int main(int argc, char** argv) {
     for (size_t i = 0; i < sizeof(read_bytes); i++) {
             printf("%u ", read_bytes[i]);
     }
+    printf("\n");
 
     // Look at the IHDR chunk
     PNGChunk ihdr; 
     read_png_chunk(png, &ihdr);
+    expose_png_chunk(ihdr);
 
-    printf("\n");
-    printf("Length: ");
-    for (size_t i = 0; i < sizeof(ihdr.length); i++) {
-        printf("%u ", ihdr.length[i]);
-    }
+    PNGChunk sbit;
+    read_png_chunk(png, &sbit);
+    expose_png_chunk(sbit);
 
-    printf("\n");
-    printf("Type: ");
-    for (size_t i = 0; i < sizeof(ihdr.type); i++) {
-        printf("%u ", ihdr.type[i]);
-    }
-
-    printf("\n");
-    printf("Data: ");
-    for (size_t i = 0; i < ihdr._len; i++) {
-        printf("%u ", ihdr.data[i]);
-    }
+    printf("%d\n", matching_chunk_type(ihdr.type, sizeof(ihdr.type), IHDR));
     
-    printf("\n");
-    printf("CRC: ");
-    for (size_t i = 0; i < sizeof(ihdr.crc); i++) {
-        printf("%u ", ihdr.crc[i]);
-    }
+    /*
+    uint8_t IHDR[4] = {73, 72, 68, 82};
+    uint8_t PLTE[4] = {80, 76, 84, 69};
+    uint8_t sBIT[4] = {115, 66, 73, 84};
+    uint8_t pHYs[4] = {112, 72, 89, 115};
+    uint8_t tEXt[4] = {116, 69, 88, 116};
+    uint8_t IDAT[4] = {73, 68, 65, 84};
+    uint8_t IEND[4] = {73, 69, 78, 68};
 
+    printf("IHDR: %i\n", u8tod(IHDR, 4));
+    printf("PLTE: %i\n", u8tod(PLTE, 4));
+    printf("sBIT: %i\n", u8tod(sBIT, 4));
+    printf("pHYs: %i\n", u8tod(pHYs, 4));
+    printf("tEXt: %i\n", u8tod(tEXt, 4));
+    printf("IDAT: %i\n", u8tod(IDAT, 4));
+    printf("IEND: %i\n", u8tod(IEND, 4));
+
+    for (int i = 0; i < 6; i++) {
+        PNGChunk chunk;
+        read_png_chunk(png, &chunk);
+        expose_png_chunk(chunk);
+        free(chunk.data);
+    }
+    */
 
     free(ihdr.data);
-
+    free(sbit.data);
     fclose(png);
     return 0;
 }

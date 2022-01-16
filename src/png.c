@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
-
 #include "png.h"
 
 int u8tod(uint8_t* buff, size_t size) {
@@ -13,6 +7,14 @@ int u8tod(uint8_t* buff, size_t size) {
     }
 
     return result;
+}
+
+bool matching_chunk_type(uint8_t* type, size_t size, PNGChunkType guess) {
+    assert(size == 4);
+    if (u8tod(type, size) == (int)guess) {
+        return true;
+    }
+    return false;
 }
 
 void read_png_bytes(FILE* f, uint8_t* buff, size_t size) {
@@ -27,6 +29,36 @@ void read_png_bytes(FILE* f, uint8_t* buff, size_t size) {
     }
 }
 
+void expose_png_chunk(PNGChunk chunk) {
+    printf("Length: ");
+    for (size_t i = 0; i < sizeof(chunk.length); i++) {
+        printf("%u ", chunk.length[i]);
+    }
+
+    printf("\n");
+    printf("Type: ");
+    for (size_t i = 0; i < sizeof(chunk.type); i++) {
+        printf("%u ", chunk.type[i]);
+    }
+    char type[5];
+    memcpy(type, chunk.type, sizeof(chunk.type));
+    type[4] = '\0';
+    printf("(%s)", type);
+
+    printf("\n");
+    printf("Data: ");
+    for (size_t i = 0; i < chunk._len; i++) {
+        printf("%u ", chunk.data[i]);
+    }
+    
+    printf("\n");
+    printf("CRC: ");
+    for (size_t i = 0; i < sizeof(chunk.crc); i++) {
+        printf("%u ", chunk.crc[i]);
+    }
+    printf("\n");
+}
+
 void read_png_chunk(FILE* f, PNGChunk* buff) {
     read_png_bytes(f, buff->length, sizeof(buff->length));
     read_png_bytes(f, buff->type, sizeof(buff->type));
@@ -34,6 +66,7 @@ void read_png_chunk(FILE* f, PNGChunk* buff) {
     // setup dynamic memory for data    
     buff->_len = u8tod(buff->length, sizeof(buff->length));
     buff->data = malloc(sizeof(uint8_t) * buff->_len);
+
     read_png_bytes(f, buff->data, buff->_len);
     read_png_bytes(f, buff->crc, sizeof(buff->crc));
 }
